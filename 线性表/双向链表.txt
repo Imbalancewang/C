@@ -1,0 +1,216 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
+#include<string.h>
+#define  OK  1
+#define  ERROR  0
+#define  TRUE  1
+#define  FALSE  0
+#define  OVERFLOW  -2
+#define  INFEASIBLE  -1
+typedef  int  Status;
+typedef  int  ElemType;
+typedef  struct  DuLNode
+{
+    ElemType  data;
+    struct  DuLNode  *prior;
+    struct  DuLNode  *next;
+}DuLNode,*DuLinkList;
+Status InitList(DuLinkList *L);
+Status ClearList(DuLinkList L);
+Status DestroyList(DuLinkList L);
+Status ListEmpty(DuLinkList L);
+int ListLength(DuLinkList L);
+Status GetElem(DuLinkList L,int i,ElemType *e);
+Status LocateElem(DuLinkList L,ElemType e,Status(*compare)(ElemType,ElemType));
+Status PriorElem(DuLinkList L,ElemType cur_e,ElemType *pre_e);
+Status NextElem(DuLinkList L,ElemType cur_e,ElemType *next_e);
+Status listInsert(DuLinkList L,int i,ElemType e);
+Status listDelete(DuLinkList  L,int i,ElemType *e);
+Status listTraverse(DuLinkList L,ElemType(*visit)(ElemType ));
+Status listTraverseBack(DuLinkList L,ElemType(*visit)(ElemType));
+int compare(ElemType a,ElemType b);
+ElemType visit(ElemType c);
+int main()
+{
+    int i,j,k;
+    DuLinkList L;
+    InitList(&L);
+    for(i=1;i<5;i++)
+        listInsert(L,i,i);
+    listDelete(L,2,&j);
+    listTraverse(L,visit);
+    printf("\n%d",j);
+    return 0;
+}
+Status InitList(DuLinkList *L)
+{
+    *L=(DuLinkList)malloc(sizeof(struct DuLNode));
+    if(*L==NULL)
+        exit(ERROR);
+    (*L)->next=*L;
+    (*L)->prior=*L;
+    return OK;
+}
+Status ClearList(DuLinkList L)
+{
+    DuLinkList p=L->next;
+    while(p!=L)
+    {
+        p=p->next;
+        free(p->prior);
+    }
+    L->next=L;
+    L->prior=L;
+    return OK;
+}
+Status DestroyList(DuLinkList L)
+{
+    ClearList(L);
+    free(L);
+    L=NULL;
+    return OK;
+}
+Status ListEmpty(DuLinkList L)
+{
+    if(L->next==L&&L->prior==L)
+        return TRUE;
+    else
+        return FALSE;
+}
+int ListLength(DuLinkList L)
+{
+    DuLinkList p=L->next;
+    int j=0;
+    while(p!=L)
+    {
+        ++j;
+        p=p->next;
+    }
+    return j;
+}
+Status GetElem(DuLinkList L,int i,ElemType *e)
+{
+    DuLinkList p=L;
+    int j=0;
+    if(i<1 || i>ListLength(L))
+        return ERROR;
+    while(j<i)
+    {
+        ++j;
+        p=p->next;
+    }
+    *e=p->data;
+    return OK;
+}
+Status LocateElem(DuLinkList L,ElemType e,Status(*compare)(ElemType,ElemType))
+{
+    DuLinkList p=L->next;
+    int j=0;
+    while(p!=L)
+    {
+        ++j;
+        if(p->data==e)
+            return j;
+        p=p->next;
+    }
+    return FALSE;
+}
+Status PriorElem(DuLinkList L,ElemType cur_e,ElemType *pre_e)
+{
+    DuLinkList p=L->next->next;
+    while(p!=L)
+    {
+        if(p->data==cur_e)
+        {
+            *pre_e=p->prior->data;
+            return OK;
+        }
+        p=p->next;
+    }
+    return FALSE;
+}
+Status NextElem(DuLinkList L,ElemType cur_e,ElemType *next_e)
+{
+    DuLinkList p=L->next;
+    while(p!=L)
+    {
+        if(p->data==cur_e)
+        {
+            *next_e=p->next->data;
+            return OK;
+        }
+        p=p->next;
+    }
+    return FALSE;
+}
+Status listInsert(DuLinkList L,int i,ElemType e)
+{
+    DuLinkList p=L;
+    DuLinkList q,s;
+    int j=0;
+    if(i<1 || i>ListLength(L)+1)
+        return ERROR;
+    while(j<i-1)
+    {
+        ++j;
+        p=p->next;
+    }
+    q=p->next;
+    s=(DuLinkList)malloc(sizeof(struct DuLNode));
+    s->data=e;
+    s->next=q;
+    p->next=s;
+    s->prior=p;
+    q->prior=s;
+    return OK;
+}
+Status listDelete(DuLinkList L,int i,ElemType *e)
+{
+    DuLinkList p=L,q;
+    int j=0;
+    if(i<1 || i>ListLength(L))
+        return ERROR;
+    while(j<i-1)
+    {
+        ++j;
+        p=p->next;
+    }
+    q=p->next;
+    *e=q->data;
+    p->next=q->next;
+    q->next->prior=p;
+    free(q);
+    return OK;
+}
+Status listTraverse(DuLinkList L,ElemType (*visit)(ElemType))
+{
+    DuLinkList p=L->next;
+    while(p!=L)
+    {
+        visit(p->data);
+        p=p->next;
+    }
+    return OK;
+}
+Status listTraverseBack(DuLinkList L,ElemType (*visit)(ElemType))
+{
+    DuLinkList p=L->prior;
+    while(p!=L)
+    {
+        visit(p->data);
+        p=p->prior;
+    }
+    return OK;
+}
+ElemType visit(ElemType c)
+{
+    printf("%d ",c);
+}
+int compare(ElemType a,ElemType b)
+{
+    if(a==b)
+        return TRUE;
+    else
+        return FALSE ;
+}

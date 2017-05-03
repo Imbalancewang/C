@@ -1,0 +1,276 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include<malloc.h>
+#define OK      1
+#define ERROR   0
+#define TRUE    1
+#define FALSE   0
+#define STACK_INIT_SIZE 100
+#define STACKINCREMENT 10
+#define BUFFERSIZE 256
+typedef int Status;
+typedef int opndElem;
+typedef struct
+{
+    opndElem *base;
+    opndElem *top;
+    int stacksize;
+}OpndStack;
+typedef char optrElem;
+typedef struct
+{
+    optrElem *base;
+    optrElem *top;
+    int stacksize;
+}OptrStack;
+Status InitStack_OPND(OpndStack *S);
+Status GetTop_OPND(OpndStack S,opndElem *e);
+Status Push_OPND(OpndStack *S,opndElem e);
+Status Pop_OPND(OpndStack *S,opndElem *e);
+Status InitStack_OPTR(OptrStack *S);
+optrElem GetTop_OPTR(OptrStack S);
+Status Push_OPTR(OptrStack *S,optrElem e);
+Status Pop_OPTR(OptrStack *S,optrElem *e);
+Status Standard(char *expression);
+opndElem EvalueateExpression(const char *expression);
+Status Isoperator(char c);
+char Precede(char a,char b);
+opndElem operate(opndElem a,optrElem theta,opndElem b);
+const char *getOpnd(const char *c,opndElem *op);
+int main()
+{
+    char *expression=(char*)malloc(sizeof(char)*BUFFERSIZE);
+    while(~scanf("%s",expression))
+    {
+    opndElem result=0;
+    Standard(expression);
+    result=EvalueateExpression(expression);
+    if(result<0)
+        printf("error\n");
+    else
+        printf("%d\n",result);
+    }
+    return 0;
+}
+Status InitStack_OPND(OpndStack *S)
+{
+    S->base=(opndElem *)malloc(STACK_INIT_SIZE*sizeof(opndElem));
+    if(!S->base)
+    {
+        exit(-1);
+    }
+    S->top=S->base;
+    S->stacksize=STACK_INIT_SIZE;
+    return OK;
+}
+Status GetTop_OPND(OpndStack S,opndElem *e)
+{
+    if(S.top==S.base)
+        return FALSE;
+    else
+    {
+        *e=*(S.top-1);
+        return OK;
+    }
+}
+Status Push_OPND(OpndStack *S,opndElem e)
+{
+    if(S->top-S->base>=S->stacksize)
+        {
+        S->base=(opndElem *)realloc(S->base,(S->stacksize+STACKINCREMENT)*sizeof(opndElem));
+        if(!S->base)
+            exit(-1);
+        S->top=S->base+S->stacksize;
+        S->stacksize+=STACKINCREMENT;
+    }
+    *S->top++=e;
+    return OK;
+}
+Status Pop_OPND(OpndStack *S,opndElem *e)
+{
+    if(S->top==S->base)
+        return ERROR;
+    *e=*(--S->top);
+    return OK;
+}
+Status InitStack_OPTR(OptrStack *S)
+{
+    S->base=(optrElem *)malloc(STACK_INIT_SIZE*sizeof(optrElem));
+    if(!S->base)
+        exit(0);
+    S->top=S->base;
+    S->stacksize=STACK_INIT_SIZE;
+    return OK;
+}
+optrElem GetTop_OPTR(OptrStack S)
+{
+    optrElem e;
+    e=*(S.top-1);
+    return e;
+}
+Status Push_OPTR(OptrStack *S,optrElem e)
+{
+    if(S->top-S->base>=S->stacksize)
+        {
+        S->base=(optrElem *)realloc(S->base,(S->stacksize+STACKINCREMENT)*sizeof(optrElem));
+        if(!S->base)
+            exit(0);
+        S->top=S->base+S->stacksize;
+        S->stacksize+=STACKINCREMENT;
+    }
+    *S->top++=e;
+    return OK;
+}
+Status Pop_OPTR(OptrStack *S,optrElem *e)
+{
+    if(S->top==S->base)
+        return ERROR;
+    *e=*(--S->top);
+    return OK;
+}
+opndElem EvalueateExpression(const char *expression)
+{
+    const char *c=expression;
+    OpndStack OPND;
+    OptrStack OPTR;
+    optrElem x,theta;
+    opndElem a,b,num,result;
+    InitStack_OPTR(&OPTR);
+    InitStack_OPND(&OPND);
+    Push_OPTR(&OPTR,'#');
+    while(*c!='#'||GetTop_OPTR(OPTR)!='#')
+        {
+        if(*c=='\0')
+            break;
+        if(FALSE==Isoperator(*c)){
+            c=getOpnd(c,&num);
+            Push_OPND(&OPND,num);
+        }
+        else
+            switch(Precede(GetTop_OPTR(OPTR),*c)){
+                case '<':
+                    Push_OPTR(&OPTR,*c);
+                    c++;
+                    break;
+                case '=':
+                    Pop_OPTR(&OPTR,&x);
+                    c++;
+                    break;
+                case '>':
+                    Pop_OPTR(&OPTR,&theta);
+                    Pop_OPND(&OPND,&b);
+                    Pop_OPND(&OPND,&a);
+                    result=operate(a,theta,b);
+                    if(result<0) return -1;
+                    Push_OPND(&OPND,result);
+                    break;
+                default:
+                    break;
+            }
+    }
+    GetTop_OPND(OPND,&result);
+    return result;
+}
+Status Standard(char *expression)
+{
+    char *p=expression,*q;
+    while(*p!='\0')
+        {
+        if(*p==' ')
+        {
+            q=p;
+            do{
+                *q=*(q+1);
+                q++;
+            }while(*q!='\0');
+        }
+        p++;
+    }
+    *p++='#';
+    *p='\0';
+    return OK;
+}
+const char *getOpnd(const char *c,opndElem *op)
+{
+    int sum=0,tmp;
+    while(FALSE==Isoperator(*c))
+        {
+        tmp=*c-'0';
+        sum=sum*10+tmp;
+        c++;
+    }
+    *op=sum;
+    return c;
+}
+Status Isoperator(char c)
+{
+    switch(c){
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '(':
+        case ')':
+        case '#':
+            return TRUE;
+            break;
+        default:
+            return FALSE;
+            break;
+    }
+}
+char Precede(char a, char b)
+{
+   int i,j;
+   char pre[][7]={
+       {'>','>','<','<','<','>','>'},
+       {'>','>','<','<','<','>','>'},
+       {'>','>','>','>','<','>','>'},
+       {'>','>','>','>','<','>','>'},
+       {'<','<','<','<','<','=','0'},
+       {'>','>','>','>','0','>','>'},
+       {'<','<','<','<','<','0','='}};
+   switch(a){
+       case '+': i=0; break;
+       case '-': i=1; break;
+       case '*': i=2; break;
+       case '/': i=3; break;
+       case '(': i=4; break;
+       case ')': i=5; break;
+       case '#': i=6; break;
+   }
+   switch(b){
+       case '+': j=0; break;
+       case '-': j=1; break;
+       case '*': j=2; break;
+       case '/': j=3; break;
+       case '(': j=4; break;
+       case ')': j=5; break;
+       case '#': j=6; break;
+   }
+   return pre[i][j];
+}
+opndElem operate(opndElem a,optrElem theta,opndElem b)
+{
+    int rs_i;
+    switch(theta){
+        case '+':
+            rs_i=a+b;
+            break;
+        case '-':
+            rs_i=a-b;
+            break;
+        case '*':
+            rs_i=a*b;
+            break;
+        case '/':
+            if(b==0){
+                return -1;
+            }
+            rs_i=a/b;
+            break;
+        default:
+            break;
+    }
+    return rs_i;
+}

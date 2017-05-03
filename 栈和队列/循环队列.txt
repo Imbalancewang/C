@@ -1,0 +1,112 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
+#define  MAXQSIZE  100
+#define  OVERFLOW  -2
+#define  TRUE  1
+#define  ERROR 0
+#define  FALSE 0
+#define  OK  1
+typedef int QElement;
+typedef int Status;
+typedef struct
+{
+    QElement *base;
+    int front;
+    int rear;
+}SqQueue;
+Status InitQueue(SqQueue *Q);
+Status DestroyQueue(SqQueue *Q);
+int QueueLength(SqQueue Q);
+Status EnQueue(SqQueue *Q,QElement e);
+Status DeQueue(SqQueue *Q,QElement *e);
+Status ClearQueue(SqQueue *Q);
+Status QueueEmpty(SqQueue *Q);
+Status Gethead(SqQueue *Q,QElement *e);
+Status visit(QElement c);
+Status QueueTraverse(SqQueue *Q,Status visit(QElement c));
+int main()
+{
+    int i,e;
+    SqQueue Q;
+    InitQueue(&Q);
+    for(i=0;i<6;i++)
+        EnQueue(&Q,i);
+    printf("%d\n",QueueLength(Q));
+    QueueTraverse(&Q,visit);
+   // DeQueue(&Q,&e);
+    Gethead(&Q,&e);
+    printf("%d",e);
+    ClearQueue(&Q);
+    printf("%d",QueueEmpty(&Q));
+}
+Status InitQueue(SqQueue *Q)
+{
+    Q->base=(QElement *)malloc(sizeof(QElement )*MAXQSIZE);
+    if(!Q->base)
+        exit(OVERFLOW);
+    Q->front=Q->rear=0;
+    return OK;
+}
+Status DestroyQueue(SqQueue *Q)
+{
+    free(Q->base);
+    Q->base=NULL;
+    Q->rear=0;
+    return OK;
+}
+Status ClearQueue(SqQueue *Q)
+{
+    Q->rear=0;
+    return OK;
+}
+Status QueueEmpty(SqQueue *Q)
+{
+    if(!QueueLength(*Q))
+        return TRUE;
+    else
+        return FALSE;
+}
+int QueueLength(SqQueue Q)
+{
+    return (Q.rear-Q.front+MAXQSIZE)%MAXQSIZE;
+}
+Status EnQueue(SqQueue *Q,QElement e)
+{
+    if((Q->rear+1)%MAXQSIZE==Q->front)
+        return ERROR;
+    Q->base[Q->rear]=e;
+    Q->rear=(Q->rear+1)%MAXQSIZE;
+    return OK;
+}
+Status DeQueue(SqQueue *Q,QElement *e)
+{
+    if(Q->front==Q->rear&&!QueueLength(*Q))
+        return ERROR;
+    *e=Q->base[Q->front];
+    Q->front=(Q->front+1)%MAXQSIZE;
+    return OK;
+}
+Status visit(QElement c)
+{
+    printf("%d ",c);
+    return OK;
+}
+Status QueueTraverse(SqQueue *Q,Status visit(QElement c))
+{
+    int i;
+    for(i=Q->front;i<Q->rear;i++)
+    {
+        visit(Q->base[i]);
+    }
+    printf("\n");
+    return OK;
+}
+Status Gethead(SqQueue *Q,QElement *e)
+{
+    if(!QueueLength(*Q))
+        return FALSE;
+    else
+        *e=Q->base[Q->front];
+    return OK;
+}

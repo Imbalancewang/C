@@ -1,0 +1,301 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
+#include<string.h>
+#define  OK  1
+#define  TRUE  1
+#define  ERROR  0
+#define FALSE  0
+#define  MAXSIZE  12500
+#define  MAXRC  12500
+typedef int Status;
+typedef int ElemType;
+typedef struct
+{
+    int i,j;
+    ElemType e;
+}Triple;
+typedef struct
+{
+    Triple data[MAXSIZE+1];
+    int rpos[MAXRC+1];//the first non-zero element int each row
+    int mu,nu,tu;
+}RLSMatrix;
+Status CreateRLSMatrix(RLSMatrix *M);
+Status DestroyRLSMatrix(RLSMatrix *M);
+Status PrintRLSMatrix(RLSMatrix M);
+Status Print2RLSMatrix(RLSMatrix M);
+Status CopyRLSMatrix(RLSMatrix M,RLSMatrix *T);
+Status AddRLSMatrix(RLSMatrix M,RLSMatrix N,RLSMatrix *Q);
+Status SubtRLSMatrix(RLSMatrix M,RLSMatrix N,RLSMatrix *Q);
+Status MultRLSMatrix(RLSMatrix M,RLSMatrix N,RLSMatrix *Q);
+Status TransposeRLSMatrix(RLSMatrix M,RLSMatrix *T);
+Status FasttransposeRLSMatrix(RLSMatrix M,RLSMatrix *T);
+int comp(int c1,int c2);
+int main()
+{
+    int i;
+    RLSMatrix T,M,N,Q;
+    CreateRLSMatrix(&M);
+   // TransposeRLSMatrix(M,&T);
+    CreateRLSMatrix(&N);
+    MultRLSMatrix(M,N,&Q);
+   // Print2RLSMatrix(M);
+    Print2RLSMatrix(Q);
+}
+Status CreateRLSMatrix(RLSMatrix *M)
+{
+    int i,j,e,m,n;
+    printf("please input the size of the sparse matrix and the numbers of non-zero elements\n");
+    scanf("%d %d %d ",&M->mu,&M->nu,&M->tu);
+    M->data[0].i=0;
+    for(i=1;i<=M->tu;i++)
+    {
+        scanf("%d %d %d",&m,&n,&e);
+        M->data[i].i=m;
+        M->data[i].j=n;
+        M->data[i].e=e;
+    }
+    memset(M->rpos,0,sizeof(M->rpos));
+    for(i=1,j=1;i<=M->tu;i++)
+    {
+        M->rpos[i]=j;
+        while(M->data[j].i<=i&&j<=M->tu)
+            j++;
+    }
+    return OK;
+}
+Status DestroyRLSMatrix(RLSMatrix *M)
+{
+    M->mu=0;
+    M->nu=0;
+    M->tu=0;
+    return OK;
+}
+Status CopyRLSMatrix(RLSMatrix M,RLSMatrix *T)
+{
+    (*T)=M;
+    return OK;
+}
+Status PrintRLSMatrix(RLSMatrix M)
+{
+    int i;
+    for(i=1;i<=M.tu;i++)
+        printf("%d %d %d\n",M.data[i].i,M.data[i].j,M.data[i].e);
+    return OK;
+}
+Status Print2RLSMatrix(RLSMatrix M)
+{
+    int i,j,k,flag;
+    for(i=1;i<=M.mu;i++)
+    {
+        for(j=1;j<=M.nu;j++)
+        {
+            flag=1;
+            for(k=1;k<=M.tu;k++)
+            {
+                if(i==M.data[k].i&&j==M.data[k].j)
+                {
+                    printf("%d ",M.data[k].e);
+                    flag=0;
+                    break;
+                }
+            }
+            if(flag)
+                printf("0 ");
+        }
+        printf("\n");
+    }
+    return OK;
+}
+Status AddRLSMatrix(RLSMatrix M,RLSMatrix N,RLSMatrix *Q)
+{
+    Triple *Mp,*Me,*Ne,*Np,*Qh,*Qe;
+   	if(M.mu!=N.mu)
+		return ERROR;
+	if(M.nu!=N.nu)
+		return ERROR;
+	(*Q).mu=M.mu;
+	(*Q).nu=M.nu;
+	Mp=&M.data[1];
+	Np=&N.data[1];
+	Me=&M.data[M.tu];
+	Ne=&N.data[N.tu];
+	Qh=Qe=(*Q).data;
+	while(Mp <= Me && Np <= Ne)
+	{
+		Qe++;
+		switch(comp(Mp->i,Np->i))
+		{
+		case  1:
+			*Qe=*Mp;
+			Mp++;
+			break;
+		case  0:
+			switch(comp(Mp->j,Np->j))
+			{
+			case  1:
+				*Qe=*Mp;
+				Mp++;
+				break;
+			case  0:
+				*Qe=*Mp;
+				Qe->e+=Np->e;
+				if(!Qe->e)
+					Qe--;
+				Mp++;
+				Np++;
+				break;
+			case -1:
+				*Qe=*Np;
+				Np++;
+			}
+			break;
+		case -1:
+			*Qe=*Np;
+			Np++;
+		}
+	}
+	if(Mp>Me)
+		while(Np<=Ne)
+		{
+			Qe++;
+			*Qe=*Np;
+			Np++;
+		}
+	if(Np>Ne)
+		while(Mp<=Me)
+		{
+			Qe++;
+			*Qe=*Mp;
+			Mp++;
+		}
+	(*Q).tu=Qe-Qh;
+    return OK;
+}
+Status SubtRLSMatrix(RLSMatrix M,RLSMatrix N,RLSMatrix *Q)
+{
+    int i;
+    for(i=1;i<=N.tu;i++)
+        N.data[i].e=N.data[i].e*(-1);
+    AddRLSMatrix(M,N,Q);
+    return OK;
+}
+int comp(int c1,int c2)
+{
+	int i;
+	if(c1<c2)
+		i=1;
+	else if(c1==c2)
+		i=0;
+	else
+		i=-1;
+	return i;
+}
+Status TransposeRLSMatrix(RLSMatrix M,RLSMatrix *T)
+{
+    T->mu=M.mu;
+    T->nu=M.nu;
+    T->tu=M.tu;
+    int i,q,col,p;
+    for(i=1;M.rpos[i]!=0;i++)
+        T->rpos[i]=M.rpos[i];
+    if(T->tu)
+    {
+        q=1;
+        for(col=1;col<=M.nu;col++)
+        {
+            for(p=1;p<=M.tu;p++)
+            {
+                if(M.data[p].j==col)
+                {
+                    T->data[q].i=M.data[p].j;
+                    T->data[q].j=M.data[p].i;
+                    T->data[q].e=M.data[p].e;
+                    q++;
+                }
+            }
+        }
+    }
+    return OK;
+}
+Status MultRLSMatrix(RLSMatrix M,RLSMatrix N,RLSMatrix *Q)
+{
+    int p,q,t,brow,arow,tp,ccol;
+    int ctemp[1000];
+    if(M.nu!=N.mu)
+        return ERROR;
+    Q->mu=M.mu;
+    Q->nu=N.nu;
+    Q->tu=0;
+    if(M.tu*N.tu)
+    {
+        for(arow=1;arow<=M.mu;arow++)
+        {
+            memset(ctemp,0,sizeof(ctemp));
+            Q->rpos[arow]=Q->tu+1;
+            if(arow<M.mu)
+                tp=M.rpos[arow+1];
+            else
+                tp=N.tu+1;
+            for(p=M.rpos[arow];p<tp;p++)
+            {
+                brow=M.data[p].j;
+                if(brow<N.mu)
+                    t=N.rpos[brow+1];
+                else
+                    t=N.tu+1;
+                for(q=N.rpos[brow];q<t;q++)
+                {
+                    ccol=N.data[q].j;
+                    ctemp[ccol]+=M.data[p].e*N.data[q].e;
+                }
+            }
+            for(ccol=1;ccol<=Q->nu;ccol++)
+            {
+                if(ctemp[ccol])
+                {
+                    if(++Q->tu>MAXSIZE)
+                        return ERROR;
+                    Q->data[Q->tu].i=arow;
+                    Q->data[Q->tu].j=ccol;
+                    Q->data[Q->tu].e=ctemp[ccol];
+                }
+            }
+        }
+    }
+    return OK;
+}
+Status FasttransposeRLSMatrix(RLSMatrix M,RLSMatrix *T)
+{
+    int p,q,t,col,*num,*cpot,i;
+	num=(int *)malloc((M.nu+1)*sizeof(int));
+	cpot=(int *)malloc((M.nu+1)*sizeof(int));
+    for(i=1;M.rpos[i]!=0;i++)
+        T->rpos[i]=M.rpos[i];
+	(*T).mu=M.nu;
+	(*T).nu=M.mu;
+	(*T).tu=M.tu;
+	if((*T).tu)
+	{
+		for(col=1;col<=M.nu;++col)
+			num[col]=0;
+		for(t=1;t<=M.tu;++t)
+			++num[M.data[t].j];
+		cpot[1]=1;
+		for(col=2;col<=M.nu;++col)
+			cpot[col]=cpot[col-1]+num[col-1];//point
+		for(p=1;p<=M.tu;++p)
+		{
+			col=M.data[p].j;
+			q=cpot[col];
+			(*T).data[q].i=M.data[p].j;
+			(*T).data[q].j=M.data[p].i;
+			(*T).data[q].e=M.data[p].e;
+			++cpot[col];
+		}
+	}
+	free(num);
+	free(cpot);
+    return OK;
+}

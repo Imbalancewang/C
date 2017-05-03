@@ -1,0 +1,217 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
+#define  OK  1
+#define  TRUE  1
+#define  FALSE  0
+#define  ERROR  0
+#define  INFEASIBLE  -1
+#define  OVERFLOW  -2
+typedef int ElemType;
+typedef int Status;
+typedef struct LNode
+{
+    ElemType data;
+    struct LNode *next;
+}LNode,*LinkList;
+Status InitList(LinkList *L);
+Status DestoryList(LinkList *L);
+Status ClearList(LinkList *L);
+Status ListEmpty(LinkList L);
+ElemType visit(ElemType c);
+Status listTraverse(LinkList L,ElemType(*visit)(ElemType));
+Status listDelete(LinkList *L,int i,ElemType *e);
+Status listInsert(LinkList *L,int i,ElemType e);
+Status GetElem(LinkList L,int i,ElemType *e);
+int ListLength(LinkList L);
+Status LocateElem(LinkList L,ElemType e,Status(*compare)(ElemType,ElemType));
+Status PriorElem(LinkList L,ElemType cur_e,ElemType *pre_e);
+Status NextElem(LinkList L,ElemType cur_e,ElemType *next_e);
+Status compare(ElemType a,ElemType b);
+int main()
+{
+    //(*L) is the tail pointer (*L)->next is the head pointer !!!!!!!!!
+    int i=1,a;
+    LinkList L;
+    InitList(&L);
+    while(scanf("%d",&a)&&a)
+    {
+        listInsert(&L,i++,a);
+    }
+    listTraverse(L,visit);
+    return 0;
+}
+Status InitList(LinkList *L)
+{
+    *L=(LinkList)malloc(sizeof(struct LNode));
+    if(!*L)
+        exit(OVERFLOW);
+    (*L)->next=*L;
+    return OK;
+}
+Status DestoryList(LinkList *L)
+{
+    LinkList q,p=(*L)->next;
+    while(p!=*L)
+    {
+        q=p->next;
+        free(p);
+        p=q;
+    }
+    free(*L);
+    *L=NULL;
+    return OK;
+}
+Status ClearList(LinkList *L)
+{
+    LinkList p,q;
+    *L=(*L)->next;
+    p=(*L)->next;
+    while(p!=*L)
+    {
+        q=p->next;
+        free(p);
+        p=q;
+    }
+    (*L)->next=*L;
+    return OK;
+}
+Status ListEmpty(LinkList L)
+{
+    if(L->next!=L)
+        return ERROR;
+    else
+        return OK;
+}
+int ListLength(LinkList L)
+{
+    int i=0;
+    LinkList p=L->next;
+    while(p!=L)
+    {
+        i++;
+        p=p->next;
+    }
+    return i;
+}
+Status GetElem(LinkList L,int i,ElemType *e)
+{
+    int j=1;
+    LinkList p=L->next->next;
+    if(i<=0 || i>ListLength(L))
+        return ERROR;
+    while(j<i)
+    {
+        p=p->next;
+        j++;
+    }
+    if(!p||j>i)
+        return 0;
+    *e=p->data;
+    return OK;
+}
+Status LocateElem(LinkList L,ElemType e,Status(*compare)(ElemType,ElemType))
+{
+    int i=0;
+    LinkList p=L->next->next;
+    while(p!=L->next)
+    {
+        i++;
+        if(compare(p->data,e))
+            return i;
+        p=p->next;
+    }
+    return ERROR;
+}
+Status PriorElem(LinkList L,ElemType cur_e,ElemType *pre_e)
+{
+    LinkList p=L->next->next;
+    LinkList q=p->next;
+    while(q!=L->next)
+    {
+        if(q->data==cur_e)
+        {
+            *pre_e=p->data;
+            return TRUE;
+        }
+        p=q;
+        q=q->next;
+    }
+    return FALSE;
+}
+Status NextElem(LinkList L,ElemType cur_e,ElemType *next_e)
+{
+    LinkList p=L->next->next;
+    while(p!=L)
+    {
+        if(p->data==cur_e)
+        {
+            *next_e=p->next->data;
+            return OK;
+        }
+        p=p->next;
+    }
+    return ERROR;
+}
+Status listInsert(LinkList *L,int i,ElemType e)
+{
+    int j=0;
+    LinkList p=(*L)->next,s;
+    if(i<=0 || i>ListLength(*L)+1)
+        return ERROR;
+    while(j<i-1)
+    {
+        p=p->next;
+        j++;
+    }
+    if(j>i-1||!p)
+        return ERROR;
+    s=(LinkList)malloc(sizeof(struct LNode));
+    s->data=e;
+    s->next=p->next;
+    p->next=s;
+    if(p==*L)
+        *L=s;
+    return OK;
+}
+Status listDelete(LinkList *L,int i,ElemType *e)
+{
+    int j=0;
+    LinkList p=(*L)->next,q;
+    if(i<=0 || i>ListLength(*L))
+        return ERROR;
+    while(j<i-1)
+    {
+        p=p->next;
+        j++;
+    }
+    q=p->next;
+    p->next=q->next;
+    *e=q->data;
+    if(*L==q)
+        *L=p;
+    free(q);
+    return OK;
+}
+Status listTraverse(LinkList L,ElemType(*visit)(ElemType))
+{
+    LinkList p=L->next->next;
+    while(p!=L->next)
+    {
+        visit(p->data);
+        p=p->next;
+    }
+    printf("\n");
+    return OK;
+}
+ElemType visit(ElemType c)
+{
+    printf("%d ",c);
+}
+Status compare(ElemType a,ElemType b)
+{
+    if(a==b)
+        return TRUE;
+    else
+        return FALSE;
+}

@@ -1,0 +1,312 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
+#include<string.h>
+#define  OK  1
+#define  FALSE  0
+#define  TRUE  1
+#define  ERROR  0
+#define  INFEASIBLE  -1
+#define  OVERFLOW  -2
+//Link list is formed of many links;
+typedef  int  ElemType;
+typedef  int  Status;
+typedef  struct  LNode
+{
+    ElemType data;
+    struct LNode *next;
+}*Link,*Position;
+typedef  struct
+{
+    Link head,tail;
+    int len;
+}LinkList;
+Status MakeNode(Link *p,ElemType e);
+void FreeNode(Link *p);
+Status InitList(LinkList *L);
+Status DestroyList(LinkList *L);
+Status ClearList(LinkList *L);
+Status InsFirst(LinkList *L,Link h,Link s);//add another variable.
+Status DelFirst(LinkList *L,Link h,Link *q);//add another variable.
+Status Append(LinkList *L,Link s);
+Status Remove(LinkList *L,Link *q);
+Status InsBefore(LinkList *L,Link *p,Link s);
+Status InsAfter(LinkList *L,Link *p,Link s);
+Status SetCurElem(Link p,ElemType e);
+Status ListEmpty(LinkList L);
+ElemType GetCurElem(Link p);
+int ListLength(LinkList L);
+Position GetHead(LinkList L);
+Position GetLast(LinkList L);
+Position PriorPos(LinkList L,Link p);
+Position NextPos(LinkList L,Link p);
+Status LocatePos(LinkList L,int i,Link *p);
+Position LocateElem(LinkList L,ElemType e,Status(*compare)(ElemType,ElemType));
+Status listTraverse(LinkList L,Status(*visit)(ElemType));
+Status compare(ElemType a,ElemType b);
+Status visit(ElemType c);
+Status OrderInsert(LinkList *L,ElemType e,Status(*cmp)(ElemType,ElemType));
+Status cmp(ElemType a,ElemType b);
+int main()
+{
+    LinkList L;
+    Link p,h;
+    InitList(&L);
+    int i,j,k;
+    k=ListEmpty(L);
+    for(i=1;i<=5;i++)
+    {
+        MakeNode(&p,i);
+        InsFirst(&L,L.tail,p);
+    }
+    printf("%d",LocateElem(L,6,compare));
+    return 0;
+}
+Status MakeNode(Link *p,ElemType e)
+{
+    *p=(Link)malloc(sizeof(struct LNode));
+    if(!p)
+        exit(ERROR);
+    (*p)->data=e;
+    return OK;
+}
+void FreeNode(Link *p)
+{
+    free(*p);
+    *p=NULL;
+}
+Status InitList(LinkList *L)
+{
+    Link p;
+    p=(Link)malloc(sizeof(struct LNode));
+    if(p)
+    {
+        p->next=NULL;
+        L->head=p;
+        L->tail=p;
+        L->len=0;
+        return OK;
+    }
+    else
+        return ERROR;
+}
+Status ClearList(LinkList *L)
+{
+    Link p,q;
+    if(L->head!=L->tail)
+    {
+        p=L->head->next;
+        q=L->head->next;
+        L->head->next=NULL;
+        while(p!=L->tail)
+        {
+            p=q->next;
+            free(q);
+            q=p;
+        }
+        free(q);
+        L->tail=L->head;
+        L->len=0;
+        return OK;
+    }
+    return ERROR;
+}
+Status DestroyList(LinkList *L)
+{
+    ClearList(L);
+    FreeNode(&L->head);
+    L->tail=NULL;
+    L->len=0;
+    return OK;
+}
+Status InsFirst(LinkList *L,Link h,Link s)
+{
+    s->next=h->next;
+    h->next=s;
+    if(h==L->tail)
+        L->tail=h->next;
+    L->len++;
+    return OK;
+}
+Status DelFirst(LinkList *L,Link h,Link *q)
+{
+    *q=h->next;
+    if(*q)
+    {
+        h->next=(*q)->next;
+        if(!h->next)
+            L->tail=h;
+        L->len--;
+        return OK;
+    }
+    else
+        return FALSE;
+}
+Status Append(LinkList *L,Link s)
+{
+    int i=1;
+    L->tail->next=s;
+    while(s->next)
+    {
+        s=s->next;
+        i++;
+    }
+    L->tail=s;
+    L->len+=i;
+    return OK;
+}
+Position PriorPos(LinkList L,Link p)
+{
+    Link q;
+    q=L.head->next;
+    if(q==p)
+        return NULL;
+    else
+    {
+        while(q->next!=p)
+            q=q->next;
+        return q;
+    }
+}
+Status Remove(LinkList *L,Link *q)
+{
+    Link p=L->head;
+    if(L->len==0)
+    {
+        q=NULL;
+        return FALSE;
+    }
+    while(p->next!=L->tail)
+        p=p->next;
+    *q=L->tail;
+    p->next=NULL;
+    L->tail=p;
+    L->len--;
+    return OK;
+}
+Status InsBefore(LinkList *L,Link *p,Link s)
+{
+    Link q;
+    q=PriorPos(*L,*p);
+    if(!q)
+        q=L->head;
+    s->next=*p;
+    q->next=s;
+    *p=s;
+    L->len++;
+    return OK;
+}
+Status InsAfter(LinkList *L,Link *p,Link s)
+{
+    if(*p==L->tail)
+        L->tail=s;
+    s->next=(*p)->next;
+    (*p)->next=s;
+    *p=s;
+    L->len++;
+    return OK;
+}
+Status SetCurElem(Link p,ElemType e)
+{
+    p->data=e;
+    return OK;
+}
+ElemType GetCurElem(Link p)
+{
+    return p->data;
+}
+Status ListEmpty(LinkList L)
+{
+    if(L.len)
+        return FALSE;
+    else
+        return TRUE;
+}
+int ListLength(LinkList L)
+{
+    return L.len;
+
+}
+Position GetHead(LinkList L)
+{
+    return L.head;
+}
+Position GetLast(LinkList L)
+{
+    return L.tail;
+}
+Position NextPos(LinkList L,Link p)
+{
+    return p->next;
+}
+Status LocatePos(LinkList L,int i,Link *p)
+{
+    int j;
+    if(i<0 || i>L.len)
+        return ERROR;
+    else
+    {
+        *p=L.head;
+        for(j=1;j<=i;j++)
+            *p=(*p)->next;
+        return OK;
+    }
+}
+Position LocateElem(LinkList L,ElemType e,Status(*compare)(ElemType,ElemType))
+{
+    Link p=L.head;
+    do
+        p=p->next;
+    while(p&&!(compare(p->data,e)));
+    return p;
+}
+Status listTraverse(LinkList L,Status(*visit)(ElemType))
+{
+    Link p=L.head->next;
+    int j;
+    for(j=1;j<=L.len;j++)
+    {
+        visit(p->data);
+        p=p->next;
+    }
+    printf("\n");
+    return OK;
+}
+Status visit(ElemType c)
+{
+    printf("%d ",c);
+}
+Status compare(ElemType a,ElemType b)
+{
+    if(a==b)
+        return TRUE;
+    else
+        return FALSE;
+}
+Status cmp(ElemType a,ElemType b)
+{
+    if(a==b)
+        return 0;
+    else if(a>b)
+        return 1;
+    else
+        return -1;
+}
+Status OrderInsert(LinkList *L,ElemType e,Status (*compare)(ElemType,ElemType))
+{
+    Link o,p,q;
+    q=L->head;
+    p=q->next;
+    while(p!=NULL && compare(p->data,e)<0)
+    {
+        q=p;
+        p=p->next;
+    }
+    o=(Link)malloc(sizeof(struct LNode));
+    o->data=e;
+    q->next=o;
+    o->next=p;
+    L->len++;
+    if(!p)
+        L->tail=o;
+}
