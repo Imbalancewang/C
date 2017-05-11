@@ -1,7 +1,14 @@
+//
+//  main.c
+//  edit_line
+//
+//  Created by matthew on 2017/5/11.
+//  Copyright © 2017年 matthew. All rights reserved.
+//
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<malloc.h>
 #define  OK  1
 #define  ERROR  0
 #define  TRUE  1
