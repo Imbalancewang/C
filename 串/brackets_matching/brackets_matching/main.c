@@ -1,7 +1,14 @@
+//
+//  main.c
+//  brackets_matching
+//
+//  Created by matthew on 2017/5/18.
+//  Copyright Â© 2017å¹´ matthew. All rights reserved.
+//
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#include<malloc.h>
 #define  OK  1
 #define  ERROR  0
 #define  TRUE  1
@@ -34,10 +41,10 @@ int Comp(char e,char c);
 void check();
 int main()
 {
-   // SqStack S;
+    // SqStack S;
     check();
-   // InitStack(&S);
-   // Push(&S,'d');
+    // InitStack(&S);
+    // Push(&S,'d');
     //printf("%d",StackEmpty(&S));
     return 0;
 }
@@ -127,43 +134,44 @@ int Comp(char e,char c)
         return FALSE;
 }
 void check()
-{ // ¶ÔÓÚÊäÈëµÄÈÎÒâÒ»¸ö×Ö·û´®£¬¼ìÑéÀ¨ºÅÊÇ·ñÅä¶Ô
-	SqStack s;
-	SElemType ch[80],*p,e;
-	InitStack(&s); // ³õÊ¼»¯Õ»³É¹¦
-	printf("ÇëÊäÈë´øÀ¨ºÅ£¨()¡¢[]ºÍ{}£©µÄ±í´ïÊ½\n");
-	gets(ch);
-	p=ch; // pÖ¸Ïò×Ö·û´®µÄÊ××Ö·û
-	while(*p) // Ã»µ½´®Î²
-		{
-		    switch(*p)
+{ // å¯¹äºè¾“å…¥çš„ä»»æ„ä¸€ä¸ªå­—ç¬¦ä¸²ï¼Œæ£€éªŒæ‹¬å·æ˜¯å¦é…å¯¹
+    SqStack s;
+    SElemType ch[80],*p,e;
+    InitStack(&s); // åˆå§‹åŒ–æ ˆæˆåŠŸ
+    printf("è¯·è¾“å…¥å¸¦æ‹¬å·ï¼ˆ()ã€[]å’Œ{}ï¼‰çš„è¡¨è¾¾å¼\n");
+    gets(ch);
+    p=ch; // pæŒ‡å‘å­—ç¬¦ä¸²çš„é¦–å­—ç¬¦
+    while(*p) // æ²¡åˆ°ä¸²å°¾
+    {
+        switch(*p)
         {
-        case '(':
-        case '[':
-        case '{':Push(&s,*p++); // ×óÀ¨ºÅÈëÕ»£¬ÇÒp++
+            case '(':
+            case '[':
+            case '{':Push(&s,*p++); // å·¦æ‹¬å·å…¥æ ˆï¼Œä¸”p++
                 break;
-        case ')':
-        case ']':
-        case '}':{if(!StackEmpty(&s)) // Õ»²»¿Õ
-                {;
-                Pop(&s,&e); // µ¯³öÕ»¶¥ÔªËØ
+            case ')':
+            case ']':
+            case '}':{if(!StackEmpty(&s)) // æ ˆä¸ç©º
+            {;
+                Pop(&s,&e); // å¼¹å‡ºæ ˆé¡¶å…ƒç´ 
                 if(!(e=='('&&*p==')'||e=='['&&*p==']'||e=='{'&&*p=='}'))
-                { // ³öÏÖ3ÖÖÆ¥ÅäÇé¿öÖ®ÍâµÄÇé¿ö
-				 printf("×óÓÒÀ¨ºÅ²»Åä¶Ô\n");
-				 exit(ERROR);
+                { // å‡ºç°3ç§åŒ¹é…æƒ…å†µä¹‹å¤–çš„æƒ…å†µ
+                    printf("å·¦å³æ‹¬å·ä¸é…å¯¹\n");
+                    exit(ERROR);
                 }
-                }
-                else // Õ»¿Õ
-                {
-                printf("È±·¦×óÀ¨ºÅ\n");
+            }
+            else // æ ˆç©º
+            {
+                printf("ç¼ºä¹å·¦æ‹¬å·\n");
                 exit(ERROR);
-                }}
-        default: p++;
-        } // ÆäËü×Ö·û²»´¦Àí£¬Ö¸ÕëÏòºóÒÆ}
-	}
-	if(StackEmpty(&s)) // ×Ö·û´®½áÊøÊ±Õ»¿Õ
-		printf("À¨ºÅÆ¥Åä\n");
-	else
-		printf("È±·¦ÓÒÀ¨ºÅ\n");
+            }}
+            default: p++;
+        } // å…¶å®ƒå­—ç¬¦ä¸å¤„ç†ï¼ŒæŒ‡é’ˆå‘åç§»}
+    }
+    if(StackEmpty(&s)) // å­—ç¬¦ä¸²ç»“æŸæ—¶æ ˆç©º
+        printf("æ‹¬å·åŒ¹é…\n");
+    else
+        printf("ç¼ºä¹å³æ‹¬å·\n");
 }
+
 
