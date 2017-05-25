@@ -1,6 +1,13 @@
+//
+//  main.c
+//  linearlist
+//
+//  Created by matthew on 2017/5/25.
+//  Copyright © 2017年 matthew. All rights reserved.
+//
+
 #include<stdio.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<string.h>
 #define  OK  1
 #define  OK  1
@@ -251,3 +258,4 @@ void Mergelist_sq(sqlist La,sqlist Lb,sqlist *Lc)
     while(pa<=pa_last) *pc++=*pa++;
     while(pb<=pb_last) *pc++=*pb++;
 }
+
