@@ -26,7 +26,7 @@ typedef struct BiThrNode{
 
 BiThrTree pre;//glbal varible;
 
-Status CreateBitree(BiThrTree*T);
+Status CreateBitree(BiThrTree *T);
 Status InOrderTraverse_Thr(BiThrTree T,Status(*visit)(TElemType e));
 void InThreading(BiThrTree p);
 Status InOrderThreading(BiThrTree *Thrt,BiThrTree T);
@@ -42,6 +42,7 @@ int main(int argc, const char * argv[]) {
 Status CreateBitree(BiThrTree *T){
     TElemType ch;
     scanf("%c",&ch);
+    getchar();
     if(ch=='#'){
         *T=NULL;
     }
@@ -51,6 +52,7 @@ Status CreateBitree(BiThrTree *T){
             exit(OVERFLOW);
         else{
             (*T)->data=ch;
+            
             CreateBitree(&((*T)->lchild));
             CreateBitree(&((*T)->rchild));
         }
@@ -67,6 +69,7 @@ Status InOrderTraverse_Thr(BiThrTree T,Status(*visit)(TElemType e)){
         while(p->RTag==Thread&&p->rchild!=T){
             p=p->rchild;
             visit(p->data);
+           // printf("a");
         }
         p=p->rchild;
     }
